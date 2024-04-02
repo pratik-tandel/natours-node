@@ -1,35 +1,5 @@
 const Tour = require('./../models/tourModel');
 
-exports.checkID = (req, res, next, val) => {
-  const id = req.params.id * 1;
-  // if (id > tours.length) {
-  //   return res.status(404).json({
-  //     status: 'fail',
-  //     message: 'Invalid ID'
-  //   });
-  // }
-  next();
-};
-
-
-/**
- * Middleware function to check if the request body contains the required fields.
- *
- * @param {Object} req - The request object
- * @param {Object} res - The response object
- * @param {Function} next - The next middleware function
- * @return {Object} JSON response indicating the missing fields, or calls the next middleware
- */
-exports.checkBody = (req, res, next) => {
-  if (!req.body.name || !req.body.price) {
-    return res.status(400).json({
-      status: 'fail',
-      message: 'Missing name or price'
-    });
-  }
-  next();
-};
-
 /**
  * Retrieves all tours from the database and sends them as a JSON response.
  *
@@ -40,7 +10,24 @@ exports.checkBody = (req, res, next) => {
  */
 exports.getAllTours = async (req, res, next) => {
   try {
-    const tours = await Tour.find();
+    /** BUILD QUERY */
+    const queryObj = { ...req.query };
+    const excludeFields = ['page', 'sort', 'limit', 'fields'];
+    excludeFields.forEach(el => delete queryObj[el]);
+
+    console.log(req.query);
+    /** EXECUTE QUERY */
+    const query = Tour.find(queryObj);
+
+    // const tours = await Tour.find()
+    //   .where('duration')
+    //   .equals(5)
+    //   .where('difficulty')
+    //   .equals('easy');
+
+    const tours = await query;
+
+    /** SEND RESPONSE */
     res.status(200).json({
       status: 'success',
       results: tours.length,
@@ -157,4 +144,33 @@ exports.deleteTour = async (req, res) => {
       message: err
     });
   }
+};
+
+exports.checkID = (req, res, next, val) => {
+  const id = req.params.id * 1;
+  // if (id > tours.length) {
+  //   return res.status(404).json({
+  //     status: 'fail',
+  //     message: 'Invalid ID'
+  //   });
+  // }
+  next();
+};
+
+/**
+ * Middleware function to check if the request body contains the required fields.
+ *
+ * @param {Object} req - The request object
+ * @param {Object} res - The response object
+ * @param {Function} next - The next middleware function
+ * @return {Object} JSON response indicating the missing fields, or calls the next middleware
+ */
+exports.checkBody = (req, res, next) => {
+  if (!req.body.name || !req.body.price) {
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Missing name or price'
+    });
+  }
+  next();
 };
